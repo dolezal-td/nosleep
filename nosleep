@@ -1,0 +1,62 @@
+#!/bin/zsh
+# nosleep — dočasně zakáže uspání Macu i se zavřeným víkem (clamshell mód).
+# Use-case: ovládáš Mac na dálku (třeba Claude Code z mobilu) a nechceš,
+# aby ti usnul, jakmile zavřeš víko a odejdeš.
+#
+# Použití:
+#   nosleep            přepne stav (on↔off)
+#   nosleep on         zakáže uspání
+#   nosleep on 3h      zakáže uspání a po 3 hodinách sám obnoví (pojistka)
+#   nosleep off        obnoví normální uspávání
+#   nosleep status     vypíše aktuální stav
+#
+# Délku lze psát jako 3h, 90m nebo holé sekundy (10800).
+
+# Přečte aktuální stav: SleepDisabled je 0 (normál) nebo 1 (uspání zakázáno).
+stav() { pmset -g | grep SleepDisabled | awk '{print $2}'; }
+
+# Převede 3h / 90m / 7200 na sekundy.
+na_sekundy() {
+  case "$1" in
+    *h) echo $(( ${1%h} * 3600 )) ;;
+    *m) echo $(( ${1%m} * 60 )) ;;
+    *)  echo "$1" ;;
+  esac
+}
+
+zapni() {
+  sudo pmset -a disablesleep 1
+  echo "🔒 Uspávání ZAKÁZÁNO — Mac zůstane vzhůru i se zavřeným víkem."
+  if [ -n "$1" ]; then
+    sekundy=$(na_sekundy "$1")
+    # Pojistka na pozadí. Celý časovač běží rovnou pod sudo (root),
+    # protože za pár hodin už by sudo znovu chtělo heslo a tiše selhalo.
+    sudo nohup zsh -c "sleep $sekundy && pmset -a disablesleep 0" > /dev/null 2>&1 &
+    echo "⏲  Pojistka: za $1 se uspávání samo obnoví."
+  fi
+}
+
+vypni() {
+  sudo pmset -a disablesleep 0
+  echo "🌙 Uspávání OBNOVENO — Mac usíná normálně."
+}
+
+case "$1" in
+  on)     zapni "$2" ;;
+  off)    vypni ;;
+  status)
+    if [ "$(stav)" = "1" ]; then
+      echo "🔒 Uspávání je zakázáno (clamshell mód aktivní)."
+    else
+      echo "🌙 Uspávání je normální."
+    fi
+    ;;
+  "")  # bez argumentu = přepni
+    if [ "$(stav)" = "1" ]; then vypni; else zapni; fi
+    ;;
+  *)
+    echo "Neznámý příkaz: $1"
+    echo "Použij: nosleep [on|off|status]  nebo  nosleep on 3h"
+    exit 1
+    ;;
+esac
