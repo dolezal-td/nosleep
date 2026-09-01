@@ -26,14 +26,15 @@ $StateFile = Join-Path $StateDir "state.json"
 $TaskName  = "nosleep-auto-restore"
 
 # Reads current AC/DC values of one power setting, locale-independently:
-# in `powercfg /query` output only the two "current index" lines contain
-# a 0x-prefixed hex value (possible-setting indexes are printed as 000).
+# hex 0x values in `powercfg /query` output are (for range settings)
+# minimum, maximum, increment, and always LAST the two current AC/DC
+# indexes - so the last two matches are the values we want.
 function Get-PowerValue([string]$SubGroup, [string]$Setting) {
-  $hex = powercfg /query SCHEME_CURRENT $SubGroup $Setting |
+  $hex = @(powercfg /query SCHEME_CURRENT $SubGroup $Setting |
     Select-String -Pattern '0x[0-9A-Fa-f]{8}' |
-    ForEach-Object { $_.Matches[0].Value }
+    ForEach-Object { $_.Matches[0].Value })
   if ($hex.Count -lt 2) { throw "Cannot read power setting $Setting." }
-  [pscustomobject]@{ AC = [Convert]::ToInt32($hex[0], 16); DC = [Convert]::ToInt32($hex[1], 16) }
+  [pscustomobject]@{ AC = [Convert]::ToInt32($hex[-2], 16); DC = [Convert]::ToInt32($hex[-1], 16) }
 }
 
 function Set-PowerValue([string]$SubGroup, [string]$Setting, [int]$AC, [int]$DC) {

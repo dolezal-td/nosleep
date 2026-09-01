@@ -46,7 +46,7 @@ zapni() {
   # Validace délky dřív, než se cokoli stane. Pouští dál jen 3h / 90m / 10800.
   # Bez ní by neplatný vstup doputoval do root shellu níže a pojistka
   # by tiše selhala (a uspávání se nikdy neobnovilo).
-  if [ -n "$1" ] && ! [[ "$1" =~ '^[0-9]+[hm]?$' ]]; then
+  if [ -n "$1" ] && ! [[ "$1" =~ ^[0-9]+[hm]?$ ]]; then
     echo "Neplatná délka: $1 — použij třeba 3h, 90m nebo 10800 (sekundy)."
     exit 1
   fi
