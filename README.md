@@ -28,6 +28,8 @@ Pokud `~/.local/bin` nemáte v PATH, přidejte si do `~/.zshrc` řádek `export 
 
 Stáhněte [windows/nosleep.ps1](windows/nosleep.ps1) kamkoli (třeba `%LOCALAPPDATA%\nosleep\`) a spouštějte z PowerShellu **jako správce**. Detaily a napojení na příkaz `nosleep` v profilu najdete v [AGENTS.md](AGENTS.md) — přesně tohle za vás jinak udělá agent.
 
+**Poctivé varování:** Windows verze vznikla na Macu. Prošla dvojím code review, ale zatím neběžela na skutečných Windows. Jestli Windows máte, otestujte ji a napište výsledek do [issue #3](https://github.com/dolezal-td/nosleep/issues/3), i „funguje" pomůže. Do té doby ji berte jako beta.
+
 ## Použití
 
 ```bash
